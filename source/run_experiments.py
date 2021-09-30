@@ -13,12 +13,15 @@ os.environ['PYTHONHASHSEED'] = '0'
 np.random.seed(1)
 rn.seed(1)
 
-session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+# session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
 import keras
 from keras import backend as K
-tf.set_random_seed(0)
-sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-K.set_session(sess)
+# tf.set_random_seed(0)
+tf.random.set_seed(0)
+sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
+tf.compat.v1.keras.backend.set_session(sess)
+
 
 
 from datahelper import *
@@ -33,11 +36,14 @@ from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding
 from keras.layers import Conv1D, GlobalMaxPooling1D, MaxPooling1D
-from keras.layers.normalization import BatchNormalization
+# from tensorflow.keras.models import Sequential
+from keras.layers import BatchNormalization
+
 from keras.layers import Conv2D, GRU
 from keras.layers import Input, Embedding, LSTM, Dense, TimeDistributed, Masking, RepeatVector, merge, Flatten
 from keras.models import Model
-from keras.utils import plot_model
+from keras.utils.vis_utils import plot_model
+# from keras.utils import plot_model
 from keras.layers import Bidirectional
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras import optimizers, layers
