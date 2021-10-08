@@ -420,7 +420,7 @@ def cindex_score(y_true, y_pred):
     g = tf.cast(g == 0.0, tf.float32) * 0.5 + tf.cast(g > 0.0, tf.float32)
 
     f = tf.subtract(tf.expand_dims(y_true, -1), y_true) > 0.0
-    f = tf.matrix_band_part(tf.cast(f, tf.float32), -1, 0)
+    f = tf.compat.v1.matrix_band_part(tf.cast(f, tf.float32), -1, 0)
 
     g = tf.reduce_sum(tf.multiply(g, f))
     f = tf.reduce_sum(f)
