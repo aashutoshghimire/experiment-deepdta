@@ -1,3 +1,4 @@
+## Note: this repo has been depriciated and is still here only for backup. The new reopo is moved to jbnu-research/experiment-deepdta
 # About DeepDTA: deep drug-target binding affinity prediction
 
 The approach used in this work is the modeling of protein sequences and compound 1D representations (SMILES) with convolutional neural networks (CNNs) to predict the binding affinity value of drug-target pairs.
