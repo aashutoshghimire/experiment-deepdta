@@ -1,0 +1,51 @@
+Namespace(batch_size=256, binary_th=0.0, checkpoint_path='', dataset_path='/home/ashutosh/scripts/experiment-deepdta/data/kiba/', is_log=0, learning_rate=0.001, log_dir='logs/1639359092.1964865/', max_seq_len=1000, max_smi_len=100, num_classes=0, num_epoch=100, num_hidden=0, num_windows=[32], problem_type=1, seq_window_lengths=[8, 12], smi_window_lengths=[4, 8])
+---Parameter Search-----
+P1 = 0,  P2 = 0, P3 = 0, Fold = 0, CI-i = 0.858585, CI-ii = 0.856263, MSE = 0.209551
+P1 = 0,  P2 = 0, P3 = 1, Fold = 0, CI-i = 0.859012, CI-ii = 0.859172, MSE = 0.194821
+P1 = 0,  P2 = 1, P3 = 0, Fold = 0, CI-i = 0.859972, CI-ii = 0.859043, MSE = 0.200400
+P1 = 0,  P2 = 1, P3 = 1, Fold = 0, CI-i = 0.863362, CI-ii = 0.862047, MSE = 0.198946
+P1 = 0,  P2 = 0, P3 = 0, Fold = 1, CI-i = 0.856365, CI-ii = 0.856512, MSE = 0.196259
+P1 = 0,  P2 = 0, P3 = 1, Fold = 1, CI-i = 0.855837, CI-ii = 0.855745, MSE = 0.202407
+P1 = 0,  P2 = 1, P3 = 0, Fold = 1, CI-i = 0.862112, CI-ii = 0.861623, MSE = 0.199809
+P1 = 0,  P2 = 1, P3 = 1, Fold = 1, CI-i = 0.866513, CI-ii = 0.865908, MSE = 0.191390
+P1 = 0,  P2 = 0, P3 = 0, Fold = 2, CI-i = 0.850274, CI-ii = 0.851252, MSE = 0.218522
+P1 = 0,  P2 = 0, P3 = 1, Fold = 2, CI-i = 0.854269, CI-ii = 0.854787, MSE = 0.204025
+P1 = 0,  P2 = 1, P3 = 0, Fold = 2, CI-i = 0.858045, CI-ii = 0.859408, MSE = 0.202447
+P1 = 0,  P2 = 1, P3 = 1, Fold = 2, CI-i = 0.862192, CI-ii = 0.861908, MSE = 0.200140
+P1 = 0,  P2 = 0, P3 = 0, Fold = 3, CI-i = 0.857073, CI-ii = 0.853089, MSE = 0.222034
+P1 = 0,  P2 = 0, P3 = 1, Fold = 3, CI-i = 0.856379, CI-ii = 0.855608, MSE = 0.217345
+P1 = 0,  P2 = 1, P3 = 0, Fold = 3, CI-i = 0.855486, CI-ii = 0.856027, MSE = 0.211242
+P1 = 0,  P2 = 1, P3 = 1, Fold = 3, CI-i = 0.859226, CI-ii = 0.858786, MSE = 0.208628
+P1 = 0,  P2 = 0, P3 = 0, Fold = 4, CI-i = 0.859530, CI-ii = 0.856615, MSE = 0.203645
+P1 = 0,  P2 = 0, P3 = 1, Fold = 4, CI-i = 0.856084, CI-ii = 0.856249, MSE = 0.195332
+P1 = 0,  P2 = 1, P3 = 0, Fold = 4, CI-i = 0.862191, CI-ii = 0.864008, MSE = 0.191352
+P1 = 0,  P2 = 1, P3 = 1, Fold = 4, CI-i = 0.862219, CI-ii = 0.862585, MSE = 0.193697
+---Parameter Search-----
+P1 = 0,  P2 = 0, P3 = 0, Fold = 0, CI-i = 0.851615, CI-ii = 0.850230, MSE = 0.207835
+P1 = 0,  P2 = 0, P3 = 1, Fold = 0, CI-i = 0.858358, CI-ii = 0.856083, MSE = 0.199525
+P1 = 0,  P2 = 1, P3 = 0, Fold = 0, CI-i = 0.864950, CI-ii = 0.862898, MSE = 0.190758
+P1 = 0,  P2 = 1, P3 = 1, Fold = 0, CI-i = 0.861122, CI-ii = 0.860712, MSE = 0.197533
+P1 = 0,  P2 = 0, P3 = 0, Fold = 1, CI-i = 0.859336, CI-ii = 0.858522, MSE = 0.195243
+P1 = 0,  P2 = 0, P3 = 1, Fold = 1, CI-i = 0.854093, CI-ii = 0.851873, MSE = 0.210853
+P1 = 0,  P2 = 1, P3 = 0, Fold = 1, CI-i = 0.864847, CI-ii = 0.862348, MSE = 0.189752
+P1 = 0,  P2 = 1, P3 = 1, Fold = 1, CI-i = 0.865539, CI-ii = 0.863541, MSE = 0.186242
+P1 = 0,  P2 = 0, P3 = 0, Fold = 2, CI-i = 0.857497, CI-ii = 0.854387, MSE = 0.195850
+P1 = 0,  P2 = 0, P3 = 1, Fold = 2, CI-i = 0.854718, CI-ii = 0.853567, MSE = 0.202258
+P1 = 0,  P2 = 1, P3 = 0, Fold = 2, CI-i = 0.860139, CI-ii = 0.860313, MSE = 0.196249
+P1 = 0,  P2 = 1, P3 = 1, Fold = 2, CI-i = 0.860280, CI-ii = 0.858369, MSE = 0.201108
+P1 = 0,  P2 = 0, P3 = 0, Fold = 3, CI-i = 0.853472, CI-ii = 0.854535, MSE = 0.196522
+P1 = 0,  P2 = 0, P3 = 1, Fold = 3, CI-i = 0.856192, CI-ii = 0.854151, MSE = 0.210394
+P1 = 0,  P2 = 1, P3 = 0, Fold = 3, CI-i = 0.854408, CI-ii = 0.854390, MSE = 0.208071
+P1 = 0,  P2 = 1, P3 = 1, Fold = 3, CI-i = 0.863453, CI-ii = 0.862674, MSE = 0.204622
+P1 = 0,  P2 = 0, P3 = 0, Fold = 4, CI-i = 0.855514, CI-ii = 0.854591, MSE = 0.212625
+P1 = 0,  P2 = 0, P3 = 1, Fold = 4, CI-i = 0.855009, CI-ii = 0.852080, MSE = 0.210346
+P1 = 0,  P2 = 1, P3 = 0, Fold = 4, CI-i = 0.860738, CI-ii = 0.860849, MSE = 0.203483
+P1 = 0,  P2 = 1, P3 = 1, Fold = 4, CI-i = 0.863737, CI-ii = 0.861092, MSE = 0.192294
+---FINAL RESULTS-----
+best param index = 3,  best param = 3.00000
+Test Performance CI
+[0.8611220455357204, 0.8655392854925809, 0.8602796456144878, 0.863453467959037, 0.8637373911833358]
+Test Performance MSE
+[0.19753313823620341, 0.1862424572654629, 0.2011083564203384, 0.20462230235255802, 0.19229378893096682]
+Setting 1
+avg_perf = 0.86283,  avg_mse = 0.19636, std = 0.00190

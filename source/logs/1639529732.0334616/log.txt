@@ -1,0 +1,19 @@
+Namespace(batch_size=256, binary_th=0.0, checkpoint_path='', dataset_path='/home/ashutosh/scripts/experiment-deepdta/data/kiba/', is_log=0, learning_rate=0.001, log_dir='logs/1639529732.0334616/', max_seq_len=1000, max_smi_len=100, num_classes=0, num_epoch=100, num_hidden=0, num_windows=[32], problem_type=1, seq_window_lengths=[8, 12], smi_window_lengths=[4, 8])
+---Parameter Search-----
+P1 = 0,  P2 = 0, P3 = 0, Fold = 0, CI-i = 0.699205, CI-ii = 0.699961, MSE = 0.551471
+P1 = 0,  P2 = 0, P3 = 1, Fold = 0, CI-i = 0.717400, CI-ii = 0.717166, MSE = 0.506213
+P1 = 0,  P2 = 1, P3 = 0, Fold = 0, CI-i = 0.708321, CI-ii = 0.709609, MSE = 0.512977
+P1 = 0,  P2 = 1, P3 = 1, Fold = 0, CI-i = 0.683298, CI-ii = 0.684844, MSE = 0.547219
+---Parameter Search-----
+P1 = 0,  P2 = 0, P3 = 0, Fold = 0, CI-i = 0.703376, CI-ii = 0.704438, MSE = 0.526278
+P1 = 0,  P2 = 0, P3 = 1, Fold = 0, CI-i = 0.712472, CI-ii = 0.713096, MSE = 0.504109
+P1 = 0,  P2 = 1, P3 = 0, Fold = 0, CI-i = 0.714832, CI-ii = 0.715162, MSE = 0.492260
+P1 = 0,  P2 = 1, P3 = 1, Fold = 0, CI-i = 0.718124, CI-ii = 0.718153, MSE = 0.525189
+---FINAL RESULTS-----
+best param index = 1,  best param = 3.00000
+Test Performance CI
+[0.7124715552881506, 0, 0, 0, 0]
+Test Performance MSE
+[0.5041094892593792, 0, 0, 0, 0]
+Setting 1
+avg_perf = 0.14249,  avg_mse = 0.10082, std = 0.28499
