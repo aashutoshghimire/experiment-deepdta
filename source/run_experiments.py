@@ -8,7 +8,12 @@ import random as rn
 ### We modified Pahikkala et al. (2014) source code for cross-val process ###
 
 import os
-os.environ['PYTHONHASHSEED'] = '0'
+
+#below 3 lines helps to align fixed gpu
+os.environ['PYTHONHASHSEED'] = '6'
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID";
+# The GPU id to use, usually either "0" or "1";
+os.environ["CUDA_VISIBLE_DEVICES"] = "6";
 
 np.random.seed(1)
 rn.seed(1)
@@ -318,6 +323,7 @@ def general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, prfmeasure, run
     paramset2 = FLAGS.smi_window_lengths                               #[4, 8]#[4,  32] #[4,  8] #filter length smi
     paramset3 = FLAGS.seq_window_lengths                               #[8, 12]#[64,  256] #[64, 192]#[8, 192, 384]
     epoch = FLAGS.num_epoch                                 #100
+#    epoch = 1                                 #100
     batchsz = FLAGS.batch_size                             #256
 
     logging("---Parameter Search-----", FLAGS)
@@ -330,6 +336,7 @@ def general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, prfmeasure, run
     print(all_predictions)
 
     for foldind in range(len(val_sets)):
+#    for foldind in range(1):
         valinds = val_sets[foldind]
         labeledinds = labeled_sets[foldind]
 
@@ -420,7 +427,7 @@ def cindex_score(y_true, y_pred):
     g = tf.cast(g == 0.0, tf.float32) * 0.5 + tf.cast(g > 0.0, tf.float32)
 
     f = tf.subtract(tf.expand_dims(y_true, -1), y_true) > 0.0
-    f = tf.matrix_band_part(tf.cast(f, tf.float32), -1, 0)
+    f = tf.compat.v1.matrix_band_part(tf.cast(f, tf.float32), -1, 0)
 
     g = tf.reduce_sum(tf.multiply(g, f))
     f = tf.reduce_sum(f)

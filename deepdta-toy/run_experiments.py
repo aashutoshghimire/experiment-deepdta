@@ -13,12 +13,15 @@ os.environ['PYTHONHASHSEED'] = '0'
 np.random.seed(1)
 rn.seed(1)
 
-session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+# session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
 import keras
 from keras import backend as K
-tf.set_random_seed(0)
-sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-K.set_session(sess)
+# tf.set_random_seed(0)
+tf.random.set_seed(0)
+sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
+tf.compat.v1.keras.backend.set_session(sess)
+
 
 
 from datahelper import *
@@ -30,14 +33,17 @@ import keras
 from keras.models import Model
 from keras.preprocessing import sequence
 from keras.models import Sequential, load_model
-from keras.layers import Dense, Dropout, Activation, Merge
+from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding
 from keras.layers import Conv1D, GlobalMaxPooling1D, MaxPooling1D
-from keras.layers.normalization import BatchNormalization
+# from tensorflow.keras.models import Sequential
+from keras.layers import BatchNormalization
+
 from keras.layers import Conv2D, GRU
 from keras.layers import Input, Embedding, LSTM, Dense, TimeDistributed, Masking, RepeatVector, merge, Flatten
 from keras.models import Model
-from keras.utils import plot_model
+from keras.utils.vis_utils import plot_model
+# from keras.utils import plot_model
 from keras.layers import Bidirectional
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras import optimizers, layers
@@ -52,8 +58,6 @@ from random import shuffle
 from copy import deepcopy
 from sklearn import preprocessing
 from emetrics import get_aupr, get_cindex, get_rm2
-import pandas as pd
-from testdatahelper import *
 
 
 
@@ -241,22 +245,45 @@ def build_baseline(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH2):
 
     return interactionModel
 
-def nfold_1_2_3_setting_sample(tr_XD, tr_XT,  tr_Y, te_XD, te_XT, te_Y,  measure, runmethod,  FLAGS, dataset):
+def nfold_1_2_3_setting_sample(XD, XT,  Y, label_row_inds, label_col_inds, measure, runmethod,  FLAGS, dataset):
 
     bestparamlist = []
     test_set, outer_train_sets = dataset.read_sets(FLAGS) 
     
-    ### MODIFIED FOR SINGLE TRAIN AND TEST #####
-    train_set = outer_train_sets
-    #train_set = [item for sublist in outer_train_sets for item in sublist]
+    foldinds = len(outer_train_sets)
 
-    bestparamind, best_param_list, bestperf, all_predictions, all_losses = general_nfold_cv(tr_XD, tr_XT,  tr_Y, te_XD, te_XT, te_Y,  
-                                                                                                measure, runmethod, FLAGS, train_set, test_set)
+    test_sets = []
+    ## TRAIN AND VAL
+    val_sets = []
+    train_sets = []
+
+    #logger.info('Start training')
+    for val_foldind in range(foldinds):
+        val_fold = outer_train_sets[val_foldind]
+        val_sets.append(val_fold)
+        otherfolds = deepcopy(outer_train_sets)
+        otherfolds.pop(val_foldind)
+        otherfoldsinds = [item for sublist in otherfolds for item in sublist]
+        train_sets.append(otherfoldsinds)
+        test_sets.append(test_set)
+        print("val set", str(len(val_fold)))
+        print("train set", str(len(otherfoldsinds)))
+
+
+
+    bestparamind, best_param_list, bestperf, all_predictions_not_need, losses_not_need = general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, 
+                                                                                                measure, runmethod, FLAGS, train_sets, val_sets)
+   
+    #print("Test Set len", str(len(test_set)))
+    #print("Outer Train Set len", str(len(outer_train_sets)))
+    bestparam, best_param_list, bestperf, all_predictions, all_losses = general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, 
+                                                                                                measure, runmethod, FLAGS, train_sets, test_sets)
     
     testperf = all_predictions[bestparamind]##pointer pos 
 
     logging("---FINAL RESULTS-----", FLAGS)
-    logging("best param index = %s" % bestparamind, FLAGS)
+    logging("best param index = %s,  best param = %.5f" % 
+            (bestparamind, bestparam), FLAGS)
 
 
     testperfs = []
@@ -264,14 +291,14 @@ def nfold_1_2_3_setting_sample(tr_XD, tr_XT,  tr_Y, te_XD, te_XT, te_Y,  measure
 
     avgperf = 0.
 
+    for test_foldind in range(len(test_sets)):
+        foldperf = all_predictions[bestparamind][test_foldind]
+        foldloss = all_losses[bestparamind][test_foldind]
+        testperfs.append(foldperf)
+        testloss.append(foldloss)
+        avgperf += foldperf
 
-    foldperf = all_predictions[bestparamind]
-    foldloss = all_losses[bestparamind]
-    testperfs.append(foldperf)
-    testloss.append(foldloss)
-    avgperf += foldperf
-
-    avgperf = avgperf / 1
+    avgperf = avgperf / len(test_sets)
     avgloss = np.mean(testloss)
     teststd = np.std(testperfs)
 
@@ -285,7 +312,7 @@ def nfold_1_2_3_setting_sample(tr_XD, tr_XT,  tr_Y, te_XD, te_XT, te_Y,  measure
 
 
 
-def general_nfold_cv(tr_XD, tr_XT,  tr_Y, te_XD, te_XT, te_Y,  prfmeasure, runmethod, FLAGS, labeled_sets, val_sets): ## BURAYA DA FLAGS LAZIM????
+def general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, prfmeasure, runmethod, FLAGS, labeled_sets, val_sets): ## BURAYA DA FLAGS LAZIM????
     
     paramset1 = FLAGS.num_windows                              #[32]#[32,  512] #[32, 128]  # filter numbers
     paramset2 = FLAGS.smi_window_lengths                               #[4, 8]#[4,  32] #[4,  8] #filter length smi
@@ -295,83 +322,69 @@ def general_nfold_cv(tr_XD, tr_XT,  tr_Y, te_XD, te_XT, te_Y,  prfmeasure, runme
 
     logging("---Parameter Search-----", FLAGS)
 
-
-    ### MODIFIED FOR SINGLE TRAIN
-
-
-
+    w = len(val_sets)
     h = len(paramset1) * len(paramset2) * len(paramset3)
 
-    all_predictions = [0 for y in range(h)] 
-    all_losses = [0 for y in range(h)] 
+    all_predictions = [[0 for x in range(w)] for y in range(h)] 
+    all_losses = [[0 for x in range(w)] for y in range(h)] 
+    print(all_predictions)
 
+    for foldind in range(len(val_sets)):
+        valinds = val_sets[foldind]
+        labeledinds = labeled_sets[foldind]
 
-    valinds = val_sets
-    labeledinds = labeled_sets
+        Y_train = np.mat(np.copy(Y))
 
-    tr_label_row_inds, tr_label_col_inds = np.where(np.isnan(tr_Y)==False)  #basically finds the point address of affinity [x,y]
-    te_label_row_inds, te_label_col_inds = np.where(np.isnan(te_Y)==False)  #basically finds the point address of affinity [x,y]
+        params = {}
+        XD_train = XD
+        XT_train = XT
+        trrows = label_row_inds[labeledinds]
+        trcols = label_col_inds[labeledinds]
 
-    Y_train = np.mat(np.copy(tr_Y))
+        XD_train = XD[trrows]
+        XT_train = XT[trcols]
 
-    params = {}
-    XD_train = tr_XD
-    XT_train = tr_XT
-    trrows = tr_label_row_inds[labeledinds]
-    trcols = tr_label_col_inds[labeledinds]
-
-        #print("trrows", str(trrows), str(len(trrows)))
-        #print("trcols", str(trcols), str(len(trcols)))
-
-    XD_train = tr_XD[trrows]
-    XT_train = tr_XT[trcols]
-
-
-    train_drugs, train_prots,  train_Y = prepare_interaction_pairs(tr_XD, tr_XT, tr_Y, trrows, trcols)
+        train_drugs, train_prots,  train_Y = prepare_interaction_pairs(XD, XT, Y, trrows, trcols)
         
-    terows = te_label_row_inds[valinds]
-    tecols = te_label_col_inds[valinds]
+        terows = label_row_inds[valinds]
+        tecols = label_col_inds[valinds]
         #print("terows", str(terows), str(len(terows)))
         #print("tecols", str(tecols), str(len(tecols)))
 
-    val_drugs, val_prots,  val_Y = prepare_interaction_pairs(te_XD, te_XT,  te_Y, terows, tecols)
+        val_drugs, val_prots,  val_Y = prepare_interaction_pairs(XD, XT,  Y, terows, tecols)
 
 
-    pointer = 0
+        pointer = 0
        
-    for param1ind in range(len(paramset1)): #hidden neurons
-        param1value = paramset1[param1ind]
-        for param2ind in range(len(paramset2)): #learning rate
-            param2value = paramset2[param2ind]
+        for param1ind in range(len(paramset1)): #hidden neurons
+            param1value = paramset1[param1ind]
+            for param2ind in range(len(paramset2)): #learning rate
+                param2value = paramset2[param2ind]
 
-            for param3ind in range(len(paramset3)):
-                param3value = paramset3[param3ind]
+                for param3ind in range(len(paramset3)):
+                    param3value = paramset3[param3ind]
 
-                gridmodel = runmethod(FLAGS, param1value, param2value, param3value)
-
-                # Set callback functions to early stop training and save the best model so far
-                callbacks = [EarlyStopping(monitor='val_loss', patience=15)]
-
-                gridres = gridmodel.fit(([np.array(train_drugs),np.array(train_prots) ]), np.array(train_Y), batch_size=batchsz, epochs=epoch,  
-                	shuffle=False ) 
-                #validation_data=( ([np.array(val_drugs), np.array(val_prots) ]), np.array(val_Y)), 
-
-                predicted_labels = gridmodel.predict([np.array(val_drugs), np.array(val_prots) ])
-                json.dump(predicted_labels.tolist(), open("predicted_labels_"+str(pointer)+ ".txt", "w"))
-                loss, rperf2 = gridmodel.evaluate(([np.array(val_drugs),np.array(val_prots) ]), np.array(val_Y), verbose=0)
-                rperf = prfmeasure(val_Y, predicted_labels)
-                #rperf = rperf[0]
+                    gridmodel = runmethod(FLAGS, param1value, param2value, param3value)
+                    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=15)
+                    gridres = gridmodel.fit(([np.array(train_drugs),np.array(train_prots) ]), np.array(train_Y), batch_size=batchsz, epochs=epoch, 
+                            validation_data=( ([np.array(val_drugs), np.array(val_prots) ]), np.array(val_Y)),  shuffle=False, callbacks=[es] ) 
 
 
-                logging("P1 = %d,  P2 = %d, P3 = %d,  CI-i = %f, CI-ii = %f, MSE = %f" % 
-                (param1ind, param2ind, param3ind,  rperf, rperf2, loss), FLAGS)
+                    predicted_labels = gridmodel.predict([np.array(val_drugs), np.array(val_prots) ])
+                    loss, rperf2 = gridmodel.evaluate(([np.array(val_drugs),np.array(val_prots) ]), np.array(val_Y), verbose=0)
+                    rperf = prfmeasure(val_Y, predicted_labels)
+                    rperf = rperf[0]
 
-                #plotLoss(gridres, param1ind, param2ind, param3ind, "1")
 
-                all_predictions[pointer] =rperf #TODO FOR EACH VAL SET allpredictions[pointer][foldind]
-                all_losses[pointer]= loss
+                    logging("P1 = %d,  P2 = %d, P3 = %d, Fold = %d, CI-i = %f, CI-ii = %f, MSE = %f" % 
+                    (param1ind, param2ind, param3ind, foldind, rperf, rperf2, loss), FLAGS)
 
-                pointer +=1
+                    plotLoss(gridres, param1ind, param2ind, param3ind, foldind)
+
+                    all_predictions[pointer][foldind] =rperf #TODO FOR EACH VAL SET allpredictions[pointer][foldind]
+                    all_losses[pointer][foldind]= loss
+
+                    pointer +=1
 
     bestperf = -float('Inf')
     bestpointer = None
@@ -385,10 +398,10 @@ def general_nfold_cv(tr_XD, tr_XT,  tr_Y, te_XD, te_XT, te_Y,  prfmeasure, runme
                 for param3ind in range(len(paramset3)):
                 
                     avgperf = 0.
-
-                    foldperf = all_predictions[pointer]
-                    avgperf += foldperf
-                    #avgperf /= len(val_sets)
+                    for foldind in range(len(val_sets)):
+                        foldperf = all_predictions[pointer][foldind]
+                        avgperf += foldperf
+                    avgperf /= len(val_sets)
                     #print(epoch, batchsz, avgperf)
                     if avgperf > bestperf:
                         bestperf = avgperf
@@ -407,7 +420,7 @@ def cindex_score(y_true, y_pred):
     g = tf.cast(g == 0.0, tf.float32) * 0.5 + tf.cast(g > 0.0, tf.float32)
 
     f = tf.subtract(tf.expand_dims(y_true, -1), y_true) > 0.0
-    f = tf.matrix_band_part(tf.cast(f, tf.float32), -1, 0)
+    f = tf.compat.v1.matrix_band_part(tf.cast(f, tf.float32), -1, 0)
 
     g = tf.reduce_sum(tf.multiply(g, f))
     f = tf.reduce_sum(f)
@@ -453,14 +466,13 @@ def prepare_interaction_pairs(XD, XT,  Y, rows, cols):
     affinity=[] 
         
     for pair_ind in range(len(rows)):
+        drug = XD[rows[pair_ind]]
+        drugs.append(drug)
 
-            drug = XD[rows[pair_ind]]
-            drugs.append(drug)
+        target=XT[cols[pair_ind]]
+        targets.append(target)
 
-            target=XT[cols[pair_ind]]
-            targets.append(target)
-
-            affinity.append(Y[rows[pair_ind],cols[pair_ind]])
+        affinity.append(Y[rows[pair_ind],cols[pair_ind]])
 
     drug_data = np.stack(drugs)
     target_data = np.stack(targets)
@@ -480,9 +492,8 @@ def experiment(FLAGS, perfmeasure, deepmethod, foldcount=6): #5-fold cross valid
     #foldcount: number of cross-validation folds for settings 1-3, setting 4 always runs 3x3 cross-validation
 
 
-    dataset = DataSet( fpath = FLAGS.train_path,
-    				   fpath_test = FLAGS.test_path,
-                      setting_no = FLAGS.problem_type, 
+    dataset = DataSet( fpath = FLAGS.dataset_path, ### BUNU ARGS DA GUNCELLE
+                      setting_no = FLAGS.problem_type, ##BUNU ARGS A EKLE
                       seqlen = FLAGS.max_seq_len,
                       smilen = FLAGS.max_smi_len,
                       need_shuffle = False )
@@ -490,37 +501,27 @@ def experiment(FLAGS, perfmeasure, deepmethod, foldcount=6): #5-fold cross valid
     FLAGS.charseqset_size = dataset.charseqset_size 
     FLAGS.charsmiset_size = dataset.charsmiset_size 
 
-    #XD, XT, Y = dataset.parse_data(fpath = FLAGS.dataset_path)
-    tr_XD, tr_XT, tr_Y, te_XD, te_XT, te_Y = dataset.parse_train_test_data(FLAGS)
+    XD, XT, Y = dataset.parse_data(FLAGS)
 
-    tr_XD = np.asarray(tr_XD)
-    tr_XT = np.asarray(tr_XT)
-    tr_Y = np.asarray(tr_Y)
+    XD = np.asarray(XD)
+    XT = np.asarray(XT)
+    Y = np.asarray(Y)
 
-    te_XD = np.asarray(te_XD)
-    te_XT = np.asarray(te_XT)
-    te_Y = np.asarray(te_Y)
+    drugcount = XD.shape[0]
+    print(drugcount)
+    targetcount = XT.shape[0]
+    print(targetcount)
 
-    tr_drugcount = tr_XD.shape[0]
-    print("train drugs: ", tr_drugcount)
-    tr_targetcount = tr_XT.shape[0]
-    print("train targets: ", tr_targetcount)
+    FLAGS.drug_count = drugcount
+    FLAGS.target_count = targetcount
 
-    te_drugcount = te_XD.shape[0]
-    print("test drugs: ", te_drugcount)
-    te_targetcount = te_XT.shape[0]
-    print("test targets: ", te_targetcount)
-
-    FLAGS.drug_count = tr_drugcount
-    FLAGS.target_count = tr_targetcount
-
-
+    label_row_inds, label_col_inds = np.where(np.isnan(Y)==False)  #basically finds the point address of affinity [x,y]
 
     if not os.path.exists(figdir):
         os.makedirs(figdir)
 
     print(FLAGS.log_dir)
-    S1_avgperf, S1_avgloss, S1_teststd = nfold_1_2_3_setting_sample(tr_XD, tr_XT,  tr_Y, te_XD, te_XT, te_Y,
+    S1_avgperf, S1_avgloss, S1_teststd = nfold_1_2_3_setting_sample(XD, XT, Y, label_row_inds, label_col_inds,
                                                                      perfmeasure, deepmethod, FLAGS, dataset)
 
     logging("Setting " + str(FLAGS.problem_type), FLAGS)
@@ -541,15 +542,11 @@ def run_regression( FLAGS ):
 
 
 if __name__=="__main__":
-
     FLAGS = argparser()
     FLAGS.log_dir = FLAGS.log_dir + str(time.time()) + "/"
 
     if not os.path.exists(FLAGS.log_dir):
         os.makedirs(FLAGS.log_dir)
-
-    prepare_new_data(FLAGS.test_path, test=True)
-    #prepare_new_data(FLAGS.train_path, test=False) #Uncomment this if you also have a new training data
 
     logging(str(FLAGS), FLAGS)
     run_regression( FLAGS )
