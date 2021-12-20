@@ -192,10 +192,10 @@ class AttentionAugmentation2D(Layer):
         #uncomment
         
         # Apply relative encodings
-        # if self.relative:
-        #     h_rel_logits, w_rel_logits = self.relative_logits(q)
-        #     logits += h_rel_logits
-        #     logits += w_rel_logits
+        if self.relative:
+             h_rel_logits, w_rel_logits = self.relative_logits(q)
+             logits += h_rel_logits
+             logits += w_rel_logits
 
         weights = K.softmax(logits, axis=-1)
         attn_out = tf.matmul(weights, flat_v)
@@ -256,7 +256,7 @@ class AttentionAugmentation2D(Layer):
         rel_logits_h = self.relative_logits_1d(
             K.permute_dimensions(q, [0, 1, 3, 2, 4]),
             #uncomment
-            # self.key_relative_h, width, height,
+            self.key_relative_h, width, height,
             transpose_mask=[0, 1, 4, 2, 5, 3])
 
         return rel_logits_h, rel_logits_w

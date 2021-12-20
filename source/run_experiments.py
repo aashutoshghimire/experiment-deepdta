@@ -146,7 +146,7 @@ def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH
 #uncomment -- 100
     x_protein = augmented_conv1d(encode_protein, shape = (x2, y2), filters=NUM_FILTERS, kernel_size=FILTER_LENGTH2,
                              strides = 1,
-                             padding = 'same', # if causal convolution is needed
+                             padding = 'valid', # if causal convolution is needed
                              depth_k=4, depth_v=4,  
                              num_heads=4, relative_encodings=True)
     
