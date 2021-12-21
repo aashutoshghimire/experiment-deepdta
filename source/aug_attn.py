@@ -197,7 +197,13 @@ class AttentionAugmentation2D(Layer):
              logits += h_rel_logits
              logits += w_rel_logits
 
-        weights = K.softmax(logits, axis=-1)
+        weights = K.relu(
+                      logits,
+                      alpha=0.0,
+                      max_value=None,
+                      threshold=0
+                  )
+#        weights = K.softmax(logits, axis=-1)
         attn_out = tf.matmul(weights, flat_v)
 
         attn_out_shape = [self._batch, self.num_heads, self._height, self._width, self.depth_v // self.num_heads]
