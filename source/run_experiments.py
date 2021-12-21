@@ -10,10 +10,10 @@ import random as rn
 import os
 
 #below 3 lines helps to align fixed gpu
-os.environ['PYTHONHASHSEED'] = '0,1'
+os.environ['PYTHONHASHSEED'] = '6,1'
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID";
 # The GPU id to use, usually either "0" or "1";
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1";
+os.environ["CUDA_VISIBLE_DEVICES"] = "6,1";
 
 np.random.seed(1)
 rn.seed(1)
