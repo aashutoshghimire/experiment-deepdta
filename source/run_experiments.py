@@ -9,11 +9,11 @@ import random as rn
 
 import os
 
-#below 3 lines helps to align fixed gpu
-os.environ['PYTHONHASHSEED'] = '6'
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID";
-# The GPU id to use, usually either "0" or "1";
-os.environ["CUDA_VISIBLE_DEVICES"] = "6";
+# #below 3 lines helps to align fixed gpu
+# os.environ['PYTHONHASHSEED'] = '6'
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID";
+# # The GPU id to use, usually either "0" or "1";
+# os.environ["CUDA_VISIBLE_DEVICES"] = "6";
 
 np.random.seed(1)
 rn.seed(1)
@@ -390,15 +390,16 @@ def general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, prfmeasure, run
 
                 for param3ind in range(len(paramset3)):
                     param3value = paramset3[param3ind]
+                    mirrored_strategy = tf.distribute.MirroredStrategy() 
+                    with mirrored_strategy.scope():
+                        gridmodel = runmethod(FLAGS, param1value, param2value, param3value)
+                        es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=15)
+                        gridres = gridmodel.fit(([np.array(train_drugs),np.array(train_prots) ]), np.array(train_Y), batch_size=batchsz, epochs=epoch, 
+                                validation_data=( ([np.array(val_drugs), np.array(val_prots) ]), np.array(val_Y)),  shuffle=False, callbacks=[es] ) 
 
-                    gridmodel = runmethod(FLAGS, param1value, param2value, param3value)
-                    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=15)
-                    gridres = gridmodel.fit(([np.array(train_drugs),np.array(train_prots) ]), np.array(train_Y), batch_size=batchsz, epochs=epoch, 
-                            validation_data=( ([np.array(val_drugs), np.array(val_prots) ]), np.array(val_Y)),  shuffle=False, callbacks=[es] ) 
 
-
-                    predicted_labels = gridmodel.predict([np.array(val_drugs), np.array(val_prots) ])
-                    loss, rperf2 = gridmodel.evaluate(([np.array(val_drugs),np.array(val_prots) ]), np.array(val_Y), verbose=0)
+                        predicted_labels = gridmodel.predict([np.array(val_drugs), np.array(val_prots) ])
+                        loss, rperf2 = gridmodel.evaluate(([np.array(val_drugs),np.array(val_prots) ]), np.array(val_Y), verbose=0)
                     rperf = prfmeasure(val_Y, predicted_labels)
                     rperf = rperf[0]
 
