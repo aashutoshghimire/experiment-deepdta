@@ -114,7 +114,7 @@ def build_combined_onehot(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH2):
 
 
 
-def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH2):
+def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH2, optimizer_var, kernel_init_var):
    
     XDinput = Input(shape=(FLAGS.max_smi_len,), dtype='int32') ### Buralar flagdan gelmeliii
     XTinput = Input(shape=(FLAGS.max_seq_len,), dtype='int32')
@@ -127,7 +127,7 @@ def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH
     x1 = (encode_smiles.shape[1])
     y1 = (encode_smiles.shape[2])
 
-    x_smiles = augmented_conv1d(encode_smiles, shape = (x1, y1), filters=NUM_FILTERS, kernel_size=FILTER_LENGTH1,
+    x_smiles = augmented_conv1d(encode_smiles, kernel_init_var, shape = (x1, y1), filters=NUM_FILTERS, kernel_size=FILTER_LENGTH1,
                              strides = 1,
                              padding = 'valid', # if causal convolution is needed
                              depth_k=4, depth_v=4,  
@@ -144,7 +144,7 @@ def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH
     x2 = (encode_protein.shape[1])
     y2 = (encode_protein.shape[2])
 #uncomment -- 100
-    x_protein = augmented_conv1d(encode_protein, shape = (x2, y2), filters=NUM_FILTERS, kernel_size=FILTER_LENGTH2,
+    x_protein = augmented_conv1d(encode_protein, kernel_init_var, shape = (x2, y2), filters=NUM_FILTERS, kernel_size=FILTER_LENGTH2,
                              strides = 1,
                              padding = 'valid', # if causal convolution is needed
                              depth_k=4, depth_v=4,  
@@ -164,11 +164,11 @@ def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH
 
 
     # And add a logistic regression on top
-    predictions = Dense(1, kernel_initializer='normal')(FC2) #OR no activation, rght now it's between 0-1, do I want this??? activation='sigmoid'
+    predictions = Dense(1, kernel_initializer=kernel_init_var)(FC2) #OR no activation, rght now it's between 0-1, do I want this??? activation='sigmoid'
 
     interactionModel = Model(inputs=[XDinput, XTinput], outputs=[predictions])
 
-    interactionModel.compile(optimizer='rmsprop', loss='mean_squared_error', metrics=[cindex_score]) #, metrics=['cindex_score']
+    interactionModel.compile(optimizer=optimizer_var, loss='mean_squared_error', metrics=[cindex_score]) #, metrics=['cindex_score']
     print(interactionModel.summary())
     plot_model(interactionModel, to_file='figures/build_combined_categorical.png')
 
@@ -342,6 +342,8 @@ def general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, prfmeasure, run
     paramset1 = FLAGS.num_windows                              #[32]#[32,  512] #[32, 128]  # filter numbers
     paramset2 = FLAGS.smi_window_lengths                               #[4, 8]#[4,  32] #[4,  8] #filter length smi
     paramset3 = FLAGS.seq_window_lengths                               #[8, 12]#[64,  256] #[64, 192]#[8, 192, 384]
+    paramset4 = ['glorot_normal', 'normal', 'glorot_uniform', 'he_normal']    #kernel initializer
+    paramset5 = ['adadelta', 'adam', 'rmsprop']                            #optimizer
     epoch = FLAGS.num_epoch                                 #100
 #    epoch = 1                                 #100
     batchsz = FLAGS.batch_size                             #256
@@ -390,31 +392,38 @@ def general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, prfmeasure, run
 
                 for param3ind in range(len(paramset3)):
                     param3value = paramset3[param3ind]
+                    
+                    for param4ind in range(len(paramset4)):
+                        kernel_init_var = paramset4[param4ind]
+                        
+                        for param5ind in range(len(paramset5)):
+                            optimizer_var = paramset5[param5ind]
+                    
 
-                    gridmodel = runmethod(FLAGS, param1value, param2value, param3value)
-                    mirrored_strategy = tf.distribute.MirroredStrategy()
-                    with mirrored_strategy.scope():
+                            gridmodel = runmethod(FLAGS, param1value, param2value, param3value, optimizer_var, kernel_init_var)
+                            mirrored_strategy = tf.distribute.MirroredStrategy()
+                            with mirrored_strategy.scope():
 
-                        es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=15)
-                        gridres = gridmodel.fit(([np.array(train_drugs),np.array(train_prots) ]), np.array(train_Y), batch_size=batchsz, epochs=epoch, 
-                                validation_data=( ([np.array(val_drugs), np.array(val_prots) ]), np.array(val_Y)),  shuffle=False, callbacks=[es] ) 
-
-
-                        predicted_labels = gridmodel.predict([np.array(val_drugs), np.array(val_prots) ])
-                        loss, rperf2 = gridmodel.evaluate(([np.array(val_drugs),np.array(val_prots) ]), np.array(val_Y), verbose=0)
-                    rperf = prfmeasure(val_Y, predicted_labels)
-                    rperf = rperf[0]
+                                es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=15)
+                                gridres = gridmodel.fit(([np.array(train_drugs),np.array(train_prots) ]), np.array(train_Y), batch_size=batchsz, epochs=epoch, 
+                                        validation_data=( ([np.array(val_drugs), np.array(val_prots) ]), np.array(val_Y)),  shuffle=False, callbacks=[es] ) 
 
 
-                    logging("P1 = %d,  P2 = %d, P3 = %d, Fold = %d, CI-i = %f, CI-ii = %f, MSE = %f" % 
-                    (param1ind, param2ind, param3ind, foldind, rperf, rperf2, loss), FLAGS)
+                                predicted_labels = gridmodel.predict([np.array(val_drugs), np.array(val_prots) ])
+                                loss, rperf2 = gridmodel.evaluate(([np.array(val_drugs),np.array(val_prots) ]), np.array(val_Y), verbose=0)
+                            rperf = prfmeasure(val_Y, predicted_labels)
+                            rperf = rperf[0]
 
-                    plotLoss(gridres, param1ind, param2ind, param3ind, foldind)
 
-                    all_predictions[pointer][foldind] =rperf #TODO FOR EACH VAL SET allpredictions[pointer][foldind]
-                    all_losses[pointer][foldind]= loss
+                            logging("P1 = %d,  P2 = %d, P3 = %d, Fold = %d, CI-i = %f, CI-ii = %f, MSE = %f" % 
+                            (param1ind, param2ind, param3ind, foldind, rperf, rperf2, loss), FLAGS)
 
-                    pointer +=1
+                            plotLoss(gridres, param1ind, param2ind, param3ind, foldind)
+
+                            all_predictions[pointer][foldind] =rperf #TODO FOR EACH VAL SET allpredictions[pointer][foldind]
+                            all_losses[pointer][foldind]= loss
+
+                            pointer +=1
 
     bestperf = -float('Inf')
     bestpointer = None

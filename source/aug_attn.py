@@ -21,11 +21,11 @@ def _conv_layer(filters, kernel_size, strides=(1, 1), padding='same', name=None)
                   use_bias=True, kernel_initializer='he_normal', name=name)
 
 
-def _conv_layer1d(ip, t_n, f_n, filters, kernel_size, strides=1, padding='same', name=None):
+def _conv_layer1d(ip, kernel_init_var, t_n, f_n, filters, kernel_size, strides=1, padding='same', name=None):
     
 
     conv1 = Conv1D(filters, kernel_size, strides=strides, padding=padding,
-                  use_bias=True, kernel_initializer='he_normal', name=name)(ip)
+                  use_bias=True, kernel_initializer=kernel_init_var, name=name)(ip)
     
     reshape = Reshape((t_n, 1, filters))(conv1)
     
@@ -33,13 +33,13 @@ def _conv_layer1d(ip, t_n, f_n, filters, kernel_size, strides=1, padding='same',
 
 
 
-def _conv_layer1r(ip, t_n, f_n, filters, kernel_size, strides=1, padding='same', name=None):
+def _conv_layer1r(ip, kernel_init_var, t_n, f_n, filters, kernel_size, strides=1, padding='same', name=None):
     
     reshape1 = Reshape((t_n, f_n))(ip)
     
 
     conv1 = Conv1D(filters, kernel_size, strides=strides, padding=padding,
-                  use_bias=True, kernel_initializer='he_normal', name=name)(reshape1)
+                  use_bias=True, kernel_initializer=kernel_init_var, name=name)(reshape1)
     
     reshape2 = Reshape((t_n, 1, filters))(conv1)
     
@@ -352,7 +352,7 @@ def augmented_conv2d(ip, filters, kernel_size=(3, 3), strides=(1, 1),
     output = concatenate([conv_out, attn_out], axis=channel_axis)
     return output
 
-def augmented_conv1d(ip, shape, filters, kernel_size=3, strides=1, padding = 'same',
+def augmented_conv1d(ip, kernel_init_var, shape, filters, kernel_size=3, strides=1, padding = 'same',
                      depth_k=0.2, depth_v=0.2, num_heads=2, relative_encodings=True):
     """
     Builds an Attention Augmented Convolution block.
@@ -397,14 +397,14 @@ def augmented_conv1d(ip, shape, filters, kernel_size=3, strides=1, padding = 'sa
     # print(kernel_size)
     # print(strides)
 
-    conv_out = _conv_layer1d(ip, t_n, f_n, filters - depth_v, kernel_size, strides, padding = 'same')
+    conv_out = _conv_layer1d(ip, kernel_init_var, t_n, f_n, filters - depth_v, kernel_size, strides, padding = 'same')
     
     # Augmented Attention Block
-    qkv_conv = _conv_layer1d(ip, t_n, f_n,  2 * depth_k + depth_v, 1, strides, padding = 'same')
+    qkv_conv = _conv_layer1d(ip, kernel_init_var, t_n, f_n,  2 * depth_k + depth_v, 1, strides, padding = 'same')
     
     attn_out = AttentionAugmentation2D(depth_k, depth_v, num_heads, relative_encodings)(qkv_conv)
     
-    attn_out = _conv_layer1r(attn_out, t_n, depth_v,  depth_v, 1, strides, padding = 'same')
+    attn_out = _conv_layer1r(attn_out, kernel_init_var, t_n, depth_v,  depth_v, 1, strides, padding = 'same')
     
     output = Concatenate(axis=channel_axis)([conv_out, attn_out])
     
