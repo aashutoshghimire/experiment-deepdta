@@ -391,7 +391,7 @@ def general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, prfmeasure, run
                 for param3ind in range(len(paramset3)):
                     param3value = paramset3[param3ind]
                     gridmodel = runmethod(FLAGS, param1value, param2value, param3value)
-                    mirrored_strategy = tf.distribute.MirroredStrategy(["GPU:0", "GPU:1","GPU:6"]) 
+                    mirrored_strategy = tf.distribute.MirroredStrategy(devices=["/gpu:0", "/gpu:1", "/gpu:6"]) 
                     with mirrored_strategy.scope():
                         
                         es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=15)
