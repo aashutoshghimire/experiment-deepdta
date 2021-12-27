@@ -342,8 +342,9 @@ def general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, prfmeasure, run
     paramset1 = FLAGS.num_windows                              #[32]#[32,  512] #[32, 128]  # filter numbers
     paramset2 = FLAGS.smi_window_lengths                               #[4, 8]#[4,  32] #[4,  8] #filter length smi
     paramset3 = FLAGS.seq_window_lengths                               #[8, 12]#[64,  256] #[64, 192]#[8, 192, 384]
-    paramset4 = ['glorot_normal', 'normal', 'glorot_uniform', 'he_normal']    #kernel initializer
-    paramset5 = ['adadelta', 'adam', 'rmsprop']                            #optimizer
+    paramset4 = ['he_normal']    #kernel initializer
+#        paramset4 = ['glorot_normal', 'normal', 'glorot_uniform', 'he_normal']    #kernel initializer
+    paramset5 = ['rmsprop']                            #optimizer
     epoch = FLAGS.num_epoch                                 #100
 #    epoch = 1                                 #100
     batchsz = FLAGS.batch_size                             #256
