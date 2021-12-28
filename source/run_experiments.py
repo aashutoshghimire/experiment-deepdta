@@ -132,9 +132,9 @@ def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH
                              padding = 'valid', # if causal convolution is needed
                              depth_k=4, depth_v=4,  
                              num_heads=4, relative_encodings=True)
+    encode_smiles = Conv1D(filters=NUM_FILTERS*2, kernel_size=FILTER_LENGTH1,  activation='relu', padding='valid',  strides=1)(x_smiles)    
     
-    
-    encode_smiles = GlobalMaxPooling1D()(x_smiles)
+    encode_smiles = GlobalMaxPooling1D()(encode_smiles)
 
 
     encode_protein = Embedding(input_dim=FLAGS.charseqset_size+1, output_dim=128, input_length=FLAGS.max_seq_len)(XTinput)
@@ -149,8 +149,9 @@ def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH
                              padding = 'valid', # if causal convolution is needed
                              depth_k=4, depth_v=4,  
                              num_heads=4, relative_encodings=True)
+    encode_protein = Conv1D(filters=NUM_FILTERS*2, kernel_size=FILTER_LENGTH2,  activation='relu', padding='valid',  strides=1)(x_protein)
     
-    encode_protein = GlobalMaxPooling1D()(x_protein)
+    encode_protein = GlobalMaxPooling1D()(encode_protein)
 
 
     encode_interaction = keras.layers.concatenate([encode_smiles, encode_protein], axis=-1) #merge.Add()([encode_smiles, encode_protein])
@@ -342,9 +343,9 @@ def general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, prfmeasure, run
     paramset1 = FLAGS.num_windows                              #[32]#[32,  512] #[32, 128]  # filter numbers
     paramset2 = FLAGS.smi_window_lengths                               #[4, 8]#[4,  32] #[4,  8] #filter length smi
     paramset3 = FLAGS.seq_window_lengths                               #[8, 12]#[64,  256] #[64, 192]#[8, 192, 384]
-    paramset4 = ['normal']    #kernel initializer
+    paramset4 = ['glorot_uniform']    #kernel initializer
 #        paramset4 = ['glorot_normal', 'normal', 'glorot_uniform', 'he_normal']    #kernel initializer
-    paramset5 = ['rmsprop']                            #optimizer
+    paramset5 = ['adadelta']                            #optimizer
     epoch = FLAGS.num_epoch                                 #100
 #    epoch = 1                                 #100
     batchsz = FLAGS.batch_size                             #256
