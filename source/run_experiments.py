@@ -124,15 +124,18 @@ def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH
     # encode_smiles = Conv1D(filters=NUM_FILTERS, kernel_size=FILTER_LENGTH1,  activation='relu', padding='valid',  strides=1)(encode_smiles)
     # encode_smiles = Conv1D(filters=NUM_FILTERS*2, kernel_size=FILTER_LENGTH1,  activation='relu', padding='valid',  strides=1)(encode_smiles)
     # encode_smiles = Conv1D(filters=NUM_FILTERS*3, kernel_size=FILTER_LENGTH1,  activation='relu', padding='valid',  strides=1)(encode_smiles)
+    encode_smiles = Conv1D(filters=NUM_FILTERS, kernel_size=FILTER_LENGTH1,  activation='relu', padding='valid',  strides=1)(encode_smiles)   
+    encode_smiles = Conv1D(filters=NUM_FILTERS*2, kernel_size=FILTER_LENGTH1,  activation='relu', padding='valid',  strides=1)(encode_smiles) 
+    encode_smiles = Conv1D(filters=NUM_FILTERS*3, kernel_size=FILTER_LENGTH1,  activation='relu', padding='valid',  strides=1)(encode_smiles)   
+    
     x1 = (encode_smiles.shape[1])
     y1 = (encode_smiles.shape[2])
 
-    x_smiles = augmented_conv1d(encode_smiles, kernel_init_var, shape = (x1, y1), filters=NUM_FILTERS, kernel_size=FILTER_LENGTH1,
+    encode_smiles = augmented_conv1d(encode_smiles, kernel_init_var, shape = (x1, y1), filters=NUM_FILTERS*4, kernel_size=FILTER_LENGTH1,
                              strides = 1,
                              padding = 'valid', # if causal convolution is needed
                              depth_k=4, depth_v=4,  
                              num_heads=4, relative_encodings=True)
-    encode_smiles = Conv1D(filters=NUM_FILTERS*2, kernel_size=FILTER_LENGTH1,  activation='relu', padding='valid',  strides=1)(x_smiles)    
     
     encode_smiles = GlobalMaxPooling1D()(encode_smiles)
 
@@ -141,15 +144,18 @@ def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH
     # encode_protein = Conv1D(filters=NUM_FILTERS, kernel_size=FILTER_LENGTH2,  activation='relu', padding='valid',  strides=1)(encode_protein)
     # encode_protein = Conv1D(filters=NUM_FILTERS*2, kernel_size=FILTER_LENGTH2,  activation='relu', padding='valid',  strides=1)(encode_protein)
     # encode_protein = Conv1D(filters=NUM_FILTERS*3, kernel_size=FILTER_LENGTH2,  activation='relu', padding='valid',  strides=1)(encode_protein)
+    encode_protein = Conv1D(filters=NUM_FILTERS, kernel_size=FILTER_LENGTH2,  activation='relu', padding='valid',  strides=1)(encode_protein)  
+    encode_protein = Conv1D(filters=NUM_FILTERS*2, kernel_size=FILTER_LENGTH2,  activation='relu', padding='valid',  strides=1)(encode_protein)
+    encode_protein = Conv1D(filters=NUM_FILTERS*3, kernel_size=FILTER_LENGTH2,  activation='relu', padding='valid',  strides=1)(encode_protein)    
+    
     x2 = (encode_protein.shape[1])
     y2 = (encode_protein.shape[2])
 #uncomment -- 100
-    x_protein = augmented_conv1d(encode_protein, kernel_init_var, shape = (x2, y2), filters=NUM_FILTERS, kernel_size=FILTER_LENGTH2,
+    encode_protein = augmented_conv1d(encode_protein, kernel_init_var, shape = (x2, y2), filters=NUM_FILTERS*4, kernel_size=FILTER_LENGTH2,
                              strides = 1,
                              padding = 'valid', # if causal convolution is needed
                              depth_k=4, depth_v=4,  
                              num_heads=4, relative_encodings=True)
-    encode_protein = Conv1D(filters=NUM_FILTERS*2, kernel_size=FILTER_LENGTH2,  activation='relu', padding='valid',  strides=1)(x_protein)
     
     encode_protein = GlobalMaxPooling1D()(encode_protein)
 
