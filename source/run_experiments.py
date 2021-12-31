@@ -134,8 +134,8 @@ def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH
     encode_smiles = augmented_conv1d(encode_smiles, kernel_init_var, shape = (x1, y1), filters=NUM_FILTERS*4, kernel_size=FILTER_LENGTH1,
                              strides = 1,
                              padding = 'valid', # if causal convolution is needed
-                             depth_k=4, depth_v=4,  
-                             num_heads=4, relative_encodings=True)
+                             depth_k=10, depth_v=10,  
+                             num_heads=10, relative_encodings=True)
     
     encode_smiles = GlobalMaxPooling1D()(encode_smiles)
 
@@ -154,8 +154,8 @@ def build_combined_categorical(FLAGS, NUM_FILTERS, FILTER_LENGTH1, FILTER_LENGTH
     encode_protein = augmented_conv1d(encode_protein, kernel_init_var, shape = (x2, y2), filters=NUM_FILTERS*4, kernel_size=FILTER_LENGTH2,
                              strides = 1,
                              padding = 'valid', # if causal convolution is needed
-                             depth_k=4, depth_v=4,  
-                             num_heads=4, relative_encodings=True)
+                             depth_k=25, depth_v=25,  
+                             num_heads=25, relative_encodings=True)
     
     encode_protein = GlobalMaxPooling1D()(encode_protein)
 
