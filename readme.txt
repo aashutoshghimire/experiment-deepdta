@@ -1,0 +1,1 @@
+This model has increased the accuracy and outperformed deepdta by 2% getting result 87. All you need is choose smile length 8 and protein length 12 during input
