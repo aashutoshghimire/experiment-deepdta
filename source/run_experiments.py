@@ -438,7 +438,7 @@ def general_nfold_cv(XD, XT,  Y, label_row_inds, label_col_inds, prfmeasure, run
                             logging("P1 = %d,  P2 = %d, P3 = %d, Fold = %d, CI-i = %f, CI-ii = %f, MSE = %f" % 
                             (param1ind, param2ind, param3ind, foldind, rperf, rperf2, loss), FLAGS)
 
-                            plotLoss(gridres, param1ind, param2ind, param3ind, foldind)
+                            plotLoss(gridres, param1ind, param2ind, param3ind, foldind, predicted_labels, val_Y)
 
                             all_predictions[pointer][foldind] =rperf #TODO FOR EACH VAL SET allpredictions[pointer][foldind]
                             all_losses[pointer][foldind]= loss
@@ -488,7 +488,7 @@ def cindex_score(y_true, y_pred):
 
 
    
-def plotLoss(history, batchind, epochind, param3ind, foldind):
+def plotLoss(history, batchind, epochind, param3ind, foldind, predicted_labels, val_Y):
 
     figname = "b"+str(batchind) + "_e" + str(epochind) + "_" + str(param3ind) + "_"  + str( foldind) + "_" + str(time.time()) 
     plt.figure()
@@ -516,6 +516,33 @@ def plotLoss(history, batchind, epochind, param3ind, foldind):
                             papertype=None, format=None,transparent=False, bbox_inches=None, pad_inches=0.1,frameon=None)
     plt.close()
 
+    ## PLOT Scatter
+    plt.figure()
+    plt.title('model Scatter')
+    plt.ylabel('cindex')
+    plt.xlabel('epoch')
+    plt.plot(history.history['cindex_score'])
+    plt.plot(history.history['val_cindex_score'])
+    plt.legend(['traincindex', 'valcindex'], loc='upper left')
+    plt.savefig("figures/"+figname + "_acc.png" , dpi=None, facecolor='w', edgecolor='w', orientation='portrait', 
+                            papertype=None, format=None,transparent=False, bbox_inches=None, pad_inches=0.1,frameon=None)
+    plt.close()
+
+    #Plotting testing set
+    plt.figure(figsize=(15,15))
+    plt.scatter(val_Y, predicted_labels, c='crimson')
+    plt.yscale('linear')
+    plt.xscale('linear')
+
+    p1 = max(max(predicted_labels), max(val_Y))
+    p2 = min(min(predicted_labels), min(val_Y))
+    plt.plot([p1, p2], [p1, p2], 'b-')
+    plt.xlabel('True Values', fontsize=15)
+    plt.ylabel('Predictions', fontsize=15)
+    plt.axis('equal')
+    plt.savefig("figures/"+figname + "_scatter.png" , dpi=None, facecolor='w', edgecolor='w', orientation='portrait', 
+                            papertype=None, format=None,transparent=False, bbox_inches=None, pad_inches=0.1,frameon=None)
+    plt.close()
 
 
 def prepare_interaction_pairs(XD, XT,  Y, rows, cols):
