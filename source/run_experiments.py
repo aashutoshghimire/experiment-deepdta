@@ -301,17 +301,17 @@ def nfold_1_2_3_setting_sample(XD, XT,  Y, label_row_inds, label_col_inds, measu
         val_sets.append(x2)
         test_sets.append(x3)
     else:
-        #logger.info('Start training')
-        for val_foldind in range(foldinds):
-            val_fold = outer_train_sets[val_foldind]
-            val_sets.append(val_fold)
-            otherfolds = deepcopy(outer_train_sets)
-            otherfolds.pop(val_foldind)
-            otherfoldsinds = [item for sublist in otherfolds for item in sublist]
-            train_sets.append(otherfoldsinds)
-            test_sets.append(test_set)
-            print("val set", str(len(val_fold)))
-            print("train set", str(len(otherfoldsinds)))
+      #logger.info('Start training')
+      for val_foldind in range(foldinds):
+          val_fold = outer_train_sets[val_foldind]
+          val_sets.append(val_fold)
+          otherfolds = deepcopy(outer_train_sets)
+          otherfolds.pop(val_foldind)
+          otherfoldsinds = [item for sublist in otherfolds for item in sublist]
+          train_sets.append(otherfoldsinds)
+          test_sets.append(test_set)
+          print("val set", str(len(val_fold)))
+          print("train set", str(len(otherfoldsinds)))
 
 
 
