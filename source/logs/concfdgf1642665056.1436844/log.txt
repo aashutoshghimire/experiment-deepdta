@@ -1,0 +1,8 @@
+Namespace(batch_size=64, binary_th=0.0, checkpoint_path='', dataset_path='/home/ashutosh/scripts/experiment-deepdta/data/kiba/', is_log=0, learning_rate=0.001, log_dir='logs/concfdgf1642665056.1436844/', max_seq_len=1000, max_smi_len=100, num_classes=0, num_epoch=200, num_hidden=0, num_windows=[32], problem_type=4, seq_window_lengths=[12], smi_window_lengths=[8])
+---Parameter Search-----
+P1 = 0,  P2 = 0, P3 = 0, Fold = 0, CI-i = 0.892763, CI-ii = 0.892863, MSE = 0.136305
+P1 = 0,  P2 = 0, P3 = 0, Fold = 1, CI-i = 0.887897, CI-ii = 0.885212, MSE = 0.155717
+P1 = 0,  P2 = 0, P3 = 0, Fold = 2, CI-i = 0.881653, CI-ii = 0.884210, MSE = 0.139170
+P1 = 0,  P2 = 0, P3 = 0, Fold = 3, CI-i = 0.880998, CI-ii = 0.884760, MSE = 0.140196
+P1 = 0,  P2 = 0, P3 = 0, Fold = 4, CI-i = 0.882220, CI-ii = 0.879399, MSE = 0.152677
+P1 = 0,  P2 = 0, P3 = 0, Fold = 5, CI-i = 0.884635, CI-ii = 0.882087, MSE = 0.146857
